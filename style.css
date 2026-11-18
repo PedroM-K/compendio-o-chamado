@@ -62,16 +62,16 @@ header {
     position: relative;
     z-index: 2;
     text-align: center;
-    padding: 64px 20px 24px;
+    padding: 64px 20px 36px;
     border-bottom: none;
-    overflow: hidden;
+    overflow: visible;
 }
 
 header::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 80% 65% at 50% 0%, rgba(var(--active-accent-rgb), 0.3) 0%, transparent 72%);
+    inset: -40px -40px -60px -40px;
+    background: radial-gradient(ellipse 70% 60% at 50% 30%, rgba(var(--active-accent-rgb), 0.22) 0%, rgba(var(--active-accent-rgb), 0.08) 45%, transparent 75%);
     pointer-events: none;
     transition: opacity 0.5s ease;
 }
