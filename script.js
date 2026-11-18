@@ -457,7 +457,6 @@
                     <button type="button" class="search-filter-chip" data-filter="especialista">Especialista</button>
                     <button type="button" class="search-filter-chip" data-filter="ocultista">Ocultista</button>
                     <button type="button" class="search-filter-chip" data-filter="rituais">Rituais</button>
-                    <button type="button" class="search-filter-chip" data-filter="item">Itens &amp; Mods</button>
                     <button type="button" class="search-filter-chip" data-filter="geral">Geral &amp; Origens</button>
                 </div>
 
