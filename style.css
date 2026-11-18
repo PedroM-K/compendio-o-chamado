@@ -1,5 +1,5 @@
 :root {
-    --bg-deep: #06060e;
+    --bg-deep: #000000;
     --bg-card: #0d0d1a;
     --bg-card2: #111120;
     --border: rgba(160, 100, 60, 0.25);
@@ -34,7 +34,7 @@
     box-sizing: border-box;
 }
 
-body {
+html, body {
     background-color: var(--bg-deep);
     color: var(--text);
     font-family: 'EB Garamond', serif;
@@ -1608,13 +1608,23 @@ footer {
     transform: translateY(0);
 }
 
-.splash-footer-text {
-    margin-top: 32px;
+.splash-disclaimer {
+    margin-top: 26px;
     font-family: 'Cinzel', serif;
     font-size: 0.62rem;
     letter-spacing: 0.25em;
     color: var(--text-dim);
-    opacity: 0.45;
+    opacity: 0.5;
+    text-transform: uppercase;
+}
+
+.splash-footer-text {
+    margin-top: 8px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.22em;
+    color: var(--text-dim);
+    opacity: 0.35;
     text-transform: uppercase;
 }
 
