@@ -477,7 +477,7 @@
         document.body.appendChild(modalOverlay);
 
         bindSearchEvents();
-        renderEmptyState();
+        performSearch('');
     }
 
     function bindSearchEvents() {
@@ -493,6 +493,7 @@
             overlay.classList.add('active');
             input.focus();
             input.select();
+            performSearch(input.value.trim());
         }
 
         // fecha o modal
@@ -538,7 +539,7 @@
         clearBtn.addEventListener('click', () => {
             input.value = '';
             clearBtn.style.display = 'none';
-            renderEmptyState();
+            performSearch('');
             input.focus();
         });
 
@@ -585,46 +586,15 @@
         });
     }
 
-    // consultas rapidas quando nao tem busca
-    function renderEmptyState() {
-        const resultsContainer = document.getElementById('searchResultsList');
-        const countLabel = document.getElementById('searchTotalCount');
-        if (!resultsContainer) return;
-
-        countLabel.textContent = `${searchableIndex.length} itens catalogados`;
-
-        resultsContainer.innerHTML = `
-            <div class="search-empty-state">
-                <div class="search-empty-title">&mdash; Consultas Rápidas &mdash;</div>
-                <div class="search-empty-desc">Selecione uma consulta frequente ou digite qualquer termo:</div>
-                <div class="search-quick-queries">
-                    <button type="button" class="search-quick-tag" data-query="Restrição Celestial">Restrição Celestial</button>
-                    <button type="button" class="search-quick-tag" data-query="Tropa de Choque">Tropa de Choque</button>
-                    <button type="button" class="search-quick-tag" data-query="NEX 50%">NEX 50%</button>
-                    <button type="button" class="search-quick-tag" data-query="Sangue">Sangue</button>
-                    <button type="button" class="search-quick-tag" data-query="Morte">Morte</button>
-                    <button type="button" class="search-quick-tag" data-query="Energia">Energia</button>
-                    <button type="button" class="search-quick-tag" data-query="Potencializar">Potencializar</button>
-                    <button type="button" class="search-quick-tag" data-query="Atormentado">Atormentado</button>
-                    <button type="button" class="search-quick-tag" data-query="Infiltrador">Infiltrador</button>
-                    <button type="button" class="search-quick-tag" data-query="Esotérico">Esotérico</button>
-                </div>
-            </div>
-        `;
-
-        resultsContainer.querySelectorAll('.search-quick-tag').forEach(tag => {
-            tag.addEventListener('click', () => {
-                const query = tag.dataset.query;
-                const input = document.getElementById('searchModalInput');
-                const clearBtn = document.getElementById('searchModalClear');
-                if (input) {
-                    input.value = query;
-                    if (clearBtn) clearBtn.style.display = 'flex';
-                    performSearch(query);
-                    input.focus();
-                }
-            });
-        });
+    function getCategoryName(cat) {
+        switch (cat) {
+            case 'combatente': return 'Combatente';
+            case 'especialista': return 'Especialista';
+            case 'ocultista': return 'Ocultista';
+            case 'rituais': return 'Rituais';
+            case 'geral': return 'Geral & Origens';
+            default: return 'todo o compêndio';
+        }
     }
 
     // busca e pontuacao
@@ -632,11 +602,6 @@
         const resultsContainer = document.getElementById('searchResultsList');
         const countLabel = document.getElementById('searchTotalCount');
         if (!resultsContainer) return;
-
-        if (!rawQuery || rawQuery.length === 0) {
-            renderEmptyState();
-            return;
-        }
 
         const query = normalizeText(rawQuery);
         const tokens = query.split(/\s+/).filter(Boolean);
@@ -653,8 +618,13 @@
                 if (currentFilterCategory === 'combatente' && item.category !== 'combatente') continue;
                 if (currentFilterCategory === 'especialista' && item.category !== 'especialista') continue;
                 if (currentFilterCategory === 'ocultista' && item.category !== 'ocultista') continue;
-                if (currentFilterCategory === 'item' && item.category !== 'item') continue;
                 if (currentFilterCategory === 'geral' && item.category !== 'geral') continue;
+            }
+
+            // se não tiver digitado nada na busca, adiciona os itens da categoria diretamente
+            if (tokens.length === 0) {
+                matches.push({ item, score: 0 });
+                continue;
             }
 
             // precisa bater com todos os termos digitados
@@ -697,25 +667,31 @@
             }
         }
 
-        // ordena por score
-        matches.sort((a, b) => b.score - a.score);
+        // ordena por score se houver termos buscados
+        if (tokens.length > 0) {
+            matches.sort((a, b) => b.score - a.score);
+        }
 
         // renderiza os cards
         if (matches.length === 0) {
-            countLabel.textContent = '0 resultados encontrados';
+            countLabel.textContent = '0 registros encontrados';
             resultsContainer.innerHTML = `
                 <div class="search-no-results">
-                    Nenhum registro encontrado para "<strong>${escapeHtml(rawQuery)}</strong>".
-                    <div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">Tente pesquisar por palavras-chave como NEX, nome do ritual, classe ou trilha.</div>
+                    Nenhum registro encontrado${rawQuery ? ` para "<strong>${escapeHtml(rawQuery)}</strong>"` : ''}.
+                    <div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.7;">Tente selecionar outra categoria ou pesquisar por palavras-chave diferentes.</div>
                 </div>
             `;
             return;
         }
 
-        countLabel.textContent = `${matches.length} ${matches.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`;
+        if (tokens.length === 0) {
+            countLabel.textContent = `${matches.length} ${matches.length === 1 ? 'item' : 'itens'} ${currentFilterCategory === 'all' ? 'catalogados' : 'em ' + getCategoryName(currentFilterCategory)}`;
+        } else {
+            countLabel.textContent = `${matches.length} ${matches.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}`;
+        }
 
-        // limita a 40 itens pra tela nao travar
-        const displayLimit = Math.min(matches.length, 40);
+        // limita a exibição para manter fluidez
+        const displayLimit = Math.min(matches.length, 60);
         let html = '';
 
         for (let i = 0; i < displayLimit; i++) {
